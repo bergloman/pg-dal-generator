@@ -1,0 +1,5 @@
+.nyc_output
+node_modules
+build
+test_data
+datasources_state.json*
