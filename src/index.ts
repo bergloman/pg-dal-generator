@@ -4,7 +4,7 @@ async function run(con_str: string, schema: string, map: Map<string, string>): P
     const db = DbAccess.create(con_str);
 
     const res = await db.any(`SELECT * FROM information_schema.tables where table_schema = '${schema}';`);
-    const Consts = {};
+    const consts = {};
     for (const tab of res) {
 
         console.log("class", /*tab.table_schema,*/ tab.table_name, "{");
@@ -22,10 +22,10 @@ async function run(con_str: string, schema: string, map: Map<string, string>): P
             console.log(`    ${field.column_name}: ${output_type};`);
             tabFields[field.column_name] = field.column_name;
         }
-        console.log("}")
-        Consts[tab.table_name] = tabFields;
-    };
-    console.log(Consts);
+        console.log("}");
+        consts[tab.table_name] = tabFields;
+    }
+    console.log(consts);
 }
 
 function prepareTypeMapping() {
@@ -41,7 +41,5 @@ function prepareTypeMapping() {
 
 ///////////////////////////////////////////////
 
-const map: Map<string, string> = prepareTypeMapping();
-
-run("......", ".....", map);
+run("......", ".....", prepareTypeMapping());
 

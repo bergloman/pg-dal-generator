@@ -6,7 +6,10 @@
     "scripts": {
         "start": "node build/index.js",
         "build": "tsc",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prepare": "npm run format && npm run lint",
+        "format": "./node_modules/.bin/tsfmt -r",
+        "lint": "./node_modules/.bin/tslint  -p tsconfig.json -c tslint.json "
     },
     "author": "",
     "license": "ISC",
