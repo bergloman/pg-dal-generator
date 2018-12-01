@@ -14,6 +14,9 @@ export namespace DbAccess {
 
         /** Utility function for executing statement on database */
         execute(sql: string, params?: any): Promise<any>;
+
+        /** Closes connection */
+        close();
     }
 
     /** PostgreSQL access class */
@@ -35,6 +38,9 @@ export namespace DbAccess {
         /** Utility function for executing statement on database */
         public async execute(sql: string, params?: any): Promise<any> {
             return await this.db.result(sql, params);
+        }
+        close() {
+           this.db = null;
         }
     }
 
