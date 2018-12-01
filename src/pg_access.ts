@@ -39,8 +39,10 @@ export namespace DbAccess {
         public async execute(sql: string, params?: any): Promise<any> {
             return await this.db.result(sql, params);
         }
-        close() {
-           this.db = null;
+
+        /** Utility function for ending connection */
+        public close() {
+            this.db = null;
         }
     }
 

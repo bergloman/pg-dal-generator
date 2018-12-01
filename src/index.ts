@@ -5,7 +5,7 @@ enum ActionEnum {
     Unknown,
     Consts,
     Classes
-};
+}
 
 async function run(action: ActionEnum, con_str: string, schema: string, map: Map<string, string>): Promise<void> {
     try {
@@ -68,7 +68,7 @@ function prepareTypeMapping() {
 }
 
 function printUsage() {
-    console.log("Action parameters: consts, classes")
+    console.log("Action parameters: consts, classes");
 }
 
 function parseCmdLine() {
@@ -93,6 +93,8 @@ function parseCmdLine() {
 
 ///////////////////////////////////////////////
 
-const { con_str, schema, action } = parseCmdLine();
-run(action, con_str, schema, prepareTypeMapping());
+(async () => {
+    const { con_str, schema, action } = parseCmdLine();
+    run(action, con_str, schema, prepareTypeMapping());
+})();
 
