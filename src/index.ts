@@ -7,22 +7,28 @@ enum ActionEnum {
     Classes
 }
 
-async function run(action: ActionEnum, con_str: string, schema: string, map: Map<string, string>): Promise<void> {
+async function run(
+    action: ActionEnum, con_str: string, schema: string,
+    nspace: string, map: Map<string, string>
+): Promise<void> {
     try {
         const db = DbAccess.create(con_str);
 
         const res = await db.any(`SELECT * FROM information_schema.tables where table_schema = '${schema}';`);
         const columns = {};
         const tables = {};
+        let indent = "";
+        if (nspace && nspace.length > 0) {
+            indent = "    ";
+            console.log(`namespace ${nspace} {`);
+        }
         for (const tab of res) {
 
             tables[tab.table_name] = tab.table_name;
 
             if (action == ActionEnum.Classes) {
-                console.log("class", tab.table_name, "{");
+                console.log(indent + "export class", tab.table_name, "{");
             }
-            /*tab.table_schema,*/
-
 
             const fields = await db.any(
                 `SELECT * FROM information_schema.columns ` +
@@ -35,20 +41,23 @@ async function run(action: ActionEnum, con_str: string, schema: string, map: Map
                 }
                 if (action == ActionEnum.Classes) {
                     const output_type = map.get(field.udt_name) || "ERROR=" + field.udt_name;
-                    console.log(`    ${field.column_name}: ${output_type};`);
+                    console.log(indent + `    ${field.column_name}: ${output_type};`);
                 }
                 tabFields[field.column_name] = field.column_name;
             }
             if (action == ActionEnum.Classes) {
-                console.log("}");
+                console.log(indent + "}");
             }
             columns[tab.table_name] = tabFields;
         }
         if (action == ActionEnum.Consts) {
-            console.log("export const Tables =", JSON.stringify(tables, null, "    ") + ";");
-            console.log("export const Columns =", JSON.stringify(columns, null, "    ") + ";");
+            console.log(indent + "export const Tables =", JSON.stringify(tables, null, "    ") + ";");
+            console.log(indent + "export const Columns =", JSON.stringify(columns, null, "    ") + ";");
         }
         db.close();
+        if (nspace && nspace.length > 0) {
+            console.log(`}`);
+        }
 
     } catch (err) {
         console.log("ERROR:");
@@ -80,6 +89,7 @@ function parseCmdLine() {
     const con_str = `postgres://${cmd_line.u}:${cmd_line.p}@${host}:${port}/${db}`;
     const schema = cmd_line.schema || "";
     const a = cmd_line.a || cmd_line.action || "consts";
+    const nspace = cmd_line.n || cmd_line.namespace || "";
     const action: ActionEnum = (
         a == "consts" ? ActionEnum.Consts :
             a == "classes" ? ActionEnum.Classes :
@@ -88,13 +98,13 @@ function parseCmdLine() {
         printUsage();
         process.exit(10);
     }
-    return { con_str, schema, action };
+    return { con_str, schema, action, nspace };
 }
 
 ///////////////////////////////////////////////
 
 (async () => {
-    const { con_str, schema, action } = parseCmdLine();
-    run(action, con_str, schema, prepareTypeMapping());
+    const { con_str, schema, action, nspace } = parseCmdLine();
+    run(action, con_str, schema, nspace, prepareTypeMapping());
 })();
 
