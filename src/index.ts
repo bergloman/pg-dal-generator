@@ -20,11 +20,11 @@ async function run(
         let indent = "";
         if (nspace && nspace.length > 0) {
             indent = "    ";
-            console.log(`namespace ${nspace} {`);
+            console.log(`export namespace ${nspace} {`);
         }
         for (const tab of res) {
 
-            tables[tab.table_name] = tab.table_name;
+            tables[tab.table_name] = tab.table_schema + "." + tab.table_name;
 
             if (action == ActionEnum.Classes) {
                 console.log(indent + "export class", tab.table_name, "{");
@@ -67,8 +67,8 @@ async function run(
 
 function prepareTypeMapping() {
     const map: Map<string, string> = new Map<string, string>();
-    map.set("int4", "numeric");
-    map.set("float8", "numeric");
+    map.set("int4", "number");
+    map.set("float8", "number");
     map.set("timestamp", "Date");
     map.set("varchar", "string");
     map.set("bool", "boolean");

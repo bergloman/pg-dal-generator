@@ -4,3 +4,4 @@ build
 test_data
 datasources_state.json*
 local_run.sh
+out*
