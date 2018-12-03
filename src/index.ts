@@ -43,7 +43,7 @@ async function run(
                 }
                 if (do_clasess) {
                     const output_type = map.get(field.udt_name) || "ERROR=" + field.udt_name;
-                    console.log(indent + `    ${field.column_name}: ${output_type};`);
+                    console.log(indent + `    public ${field.column_name}: ${output_type};`);
                 }
                 tabFields[field.column_name] = field.column_name;
             }
@@ -54,13 +54,13 @@ async function run(
         }
 
         if (do_consts) {
-            console.log(indent + "export const Tables = {");
+            console.log(indent + "export const TABLES = {");
             for (const tab_name of Object.keys(tables)) {
                 console.log(indent + `    ${tab_name}: "${tables[tab_name]}",`);
             }
             console.log(indent + "};");
 
-            console.log(indent + "export const Columns = {");
+            console.log(indent + "export const COLUMNS = {");
             for (const tab_name of Object.keys(columns)) {
                 const tab_cols = columns[tab_name];
                 console.log(indent + `    ${tab_name}: {`);
