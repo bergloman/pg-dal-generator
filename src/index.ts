@@ -8,9 +8,11 @@ enum ActionEnum {
 }
 
 async function run(
-    action: ActionEnum, con_str: string, schema: string,
+    actions: ActionEnum[], con_str: string, schema: string,
     nspace: string, map: Map<string, string>
 ): Promise<void> {
+    const do_clasess = actions.includes(ActionEnum.Classes);
+    const do_consts = actions.includes(ActionEnum.Consts);
     try {
         const db = DbAccess.create(con_str);
 
@@ -26,7 +28,7 @@ async function run(
 
             tables[tab.table_name] = tab.table_schema + "." + tab.table_name;
 
-            if (action == ActionEnum.Classes) {
+            if (do_clasess) {
                 console.log(indent + "export class", tab.table_name, "{");
             }
 
@@ -39,20 +41,35 @@ async function run(
                 if (field.column_name == "id") {
                     continue;
                 }
-                if (action == ActionEnum.Classes) {
+                if (do_clasess) {
                     const output_type = map.get(field.udt_name) || "ERROR=" + field.udt_name;
                     console.log(indent + `    ${field.column_name}: ${output_type};`);
                 }
                 tabFields[field.column_name] = field.column_name;
             }
-            if (action == ActionEnum.Classes) {
+            if (do_clasess) {
                 console.log(indent + "}");
             }
             columns[tab.table_name] = tabFields;
         }
-        if (action == ActionEnum.Consts) {
-            console.log(indent + "export const Tables =", JSON.stringify(tables, null, "    ") + ";");
-            console.log(indent + "export const Columns =", JSON.stringify(columns, null, "    ") + ";");
+
+        if (do_consts) {
+            console.log(indent + "export const Tables = {");
+            for (const tab_name of Object.keys(tables)) {
+                console.log(indent + `    ${tab_name}: "${tables[tab_name]}",`);
+            }
+            console.log(indent + "};");
+
+            console.log(indent + "export const Columns = {");
+            for (const tab_name of Object.keys(columns)) {
+                const tab_cols = columns[tab_name];
+                console.log(indent + `    ${tab_name}: {`);
+                for (const col_name of Object.keys(tab_cols)) {
+                    console.log(indent + `        ${col_name}: "${tab_cols[col_name]}",`);
+                }
+                console.log(indent + `    },`);
+            }
+            console.log(indent + "};");
         }
         db.close();
         if (nspace && nspace.length > 0) {
@@ -90,21 +107,24 @@ function parseCmdLine() {
     const schema = cmd_line.schema || "";
     const a = cmd_line.a || cmd_line.action || "consts";
     const nspace = cmd_line.n || cmd_line.namespace || "";
-    const action: ActionEnum = (
-        a == "consts" ? ActionEnum.Consts :
-            a == "classes" ? ActionEnum.Classes :
-                ActionEnum.Unknown);
-    if (action == ActionEnum.Unknown) {
+
+    const a_list = a.split(",");
+    const actions: ActionEnum[] = a_list.map(x => (
+        x == "consts" ? ActionEnum.Consts :
+            x == "classes" ? ActionEnum.Classes :
+                ActionEnum.Unknown)
+    );
+    if (actions.filter(x => x == ActionEnum.Unknown).length > 0) {
         printUsage();
         process.exit(10);
     }
-    return { con_str, schema, action, nspace };
+    return { con_str, schema, actions, nspace };
 }
 
 ///////////////////////////////////////////////
 
 (async () => {
-    const { con_str, schema, action, nspace } = parseCmdLine();
-    run(action, con_str, schema, nspace, prepareTypeMapping());
+    const { con_str, schema, actions, nspace } = parseCmdLine();
+    run(actions, con_str, schema, nspace, prepareTypeMapping());
 })();
 
