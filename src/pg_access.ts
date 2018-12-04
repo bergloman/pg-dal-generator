@@ -42,7 +42,7 @@ export namespace DbAccess {
 
         /** Utility function for ending connection */
         public close() {
-            this.db = null;
+            this.db.$pool.end();
         }
     }
 

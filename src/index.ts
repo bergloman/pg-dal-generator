@@ -13,9 +13,8 @@ async function run(
 ): Promise<void> {
     const do_clasess = actions.includes(ActionEnum.Classes);
     const do_consts = actions.includes(ActionEnum.Consts);
+    const db = DbAccess.create(con_str);
     try {
-        const db = DbAccess.create(con_str);
-
         const res = await db.any(
             `SELECT * FROM information_schema.tables ` +
             `where table_schema = '${schema}' order by table_name;`);
@@ -45,7 +44,14 @@ async function run(
                     continue;
                 }
                 if (do_clasess) {
-                    const output_type = map.get(field.udt_name) || "ERROR=" + field.udt_name;
+                    let output_type = map.get(field.udt_name) || "ERROR=" + field.udt_name;
+                    if (output_type.startsWith("ERROR")) {
+                        if (field.data_type == "USER-DEFINED") {
+                            output_type = "string";
+                        } else {
+                            console.log(indent + "    // ", JSON.stringify(field));
+                        }
+                    }
                     console.log(indent + `    public ${field.column_name}: ${output_type};`);
                 }
                 tabFields[field.column_name] = field.column_name;
@@ -80,6 +86,7 @@ async function run(
         }
 
     } catch (err) {
+        db.close();
         console.log("ERROR:");
         console.log(err);
     }
