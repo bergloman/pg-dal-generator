@@ -16,7 +16,9 @@ async function run(
     try {
         const db = DbAccess.create(con_str);
 
-        const res = await db.any(`SELECT * FROM information_schema.tables where table_schema = '${schema}';`);
+        const res = await db.any(
+            `SELECT * FROM information_schema.tables ` +
+            `where table_schema = '${schema}' order by table_name;`);
         const columns = {};
         const tables = {};
         let indent = "";
@@ -34,7 +36,8 @@ async function run(
 
             const fields = await db.any(
                 `SELECT * FROM information_schema.columns ` +
-                `where table_schema = '${tab.table_schema}' and table_name = '${tab.table_name}';`);
+                `where table_schema = '${tab.table_schema}' and table_name = '${tab.table_name}' ` +
+                `order by column_name;`);
 
             const tabFields = {};
             for (const field of fields) {
