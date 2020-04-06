@@ -1,2 +1,3 @@
 # pg-dal-generator
-DAL genrator for Postgres database
+
+DAL generator for Postgres database.
