@@ -7,5 +7,5 @@ It runs in [node.js](https://nodejs.org/) and creates custom output.
 Select language:
 
 - [English - EN](en)
-- [Slovensko - SI](si)
+- [Slovensko - SI](sl)
 
